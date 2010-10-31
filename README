@@ -104,7 +104,7 @@ or
 }
 
 --- Get your external ip addres
-8> ip:ip().
+8> geoip:ip().
 {2,95,9,156}
 
 ----- Compile & test --------------------------------------
