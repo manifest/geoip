@@ -1,0 +1,117 @@
+==== GeoIP ================================================
+Provides information about the geolocation. Based on the ipinfodb.com web service.
+
+----- Usage -----------------------------------------------
+--- Befor using
+You must start the daemon before calling any of the functions
+
+1> geoip:start().
+ok
+
+--- Get geolocation
+2> geoip:geolocation().
+#response{
+	ip = {95,30,242,238},
+	status = "OK",
+	country_code = "RU",
+	country_name = "Russian Federation",
+	region_code = 48,
+	region_name = "Moscow City",
+	city = "Moscow",
+	zip_postal_code = undefined,
+	latitude = 55.7522,
+	longitude = 37.6156,
+	...
+}
+
+or
+
+3> geoip:geolocation({74, 125, 232, 17}).
+#response{
+	ip = {74,125,232,17},
+	status = "OK",
+	country_code = "US",         
+	country_name = "United States",
+	region_code = 6,
+	region_name = "California",
+	city = "Mountain View",
+	zip_postal_code = 94043,
+	latitude = 37.4192,
+	longitude = -122.057,
+	...
+}
+
+--- Country only
+Returns country only geolocation information
+
+4> geoip:geolocation(#options {precision=country}).                    
+#response{
+	ip = {2,95,9,156},
+	status = "OK",
+	country_code = "RU",
+	country_name = "Russian Federation",
+	...
+}
+
+or
+
+5> geoip:geolocation({74, 125, 232, 17}, #options {precision=country}).
+#response{
+	ip = {74,125,232,17},
+	status = "OK",
+	country_code = "US",
+	country_name = "United States",
+	...
+}
+
+--- Timezone
+Returns timezone information too
+
+6> geoip:geolocation(#options {timezone = true}).  
+#response{
+	ip = {2,95,9,156},
+	status = "OK",
+	country_code = "RU",
+ 	country_name = "Russian Federation",
+	region_code = 48,
+	region_name = "Moscow City",
+	city = "Moscow",
+	zip_postal_code = undefined,
+	latitude = 55.7522,
+	longitude = 37.6156,
+	timezone = "Europe/Moscow",
+	utc_offset = 10800,
+	dst = false
+}
+
+or
+
+7> geoip:geolocation({74,125,232,17}, #options {timezone = true}).
+#response{
+	ip = {74,125,232,17},
+	status = "OK",
+	country_code = "US",
+	country_name = "United States",
+	region_code = 6,
+	region_name = "California",
+	city = "Mountain View",
+	zip_postal_code = 94043,
+	latitude = 37.4192,
+	longitude = -122.057,
+	timezone = "America/Los_Angeles",
+	utc_offset = -25200,
+	dst = true
+}
+
+--- Get your external ip addres
+8> ip:ip().
+{2,95,9,156}
+
+----- Compile & test --------------------------------------
+make
+cd ebin
+./test.escript
+
+----- Copyright -------------------------------------------
+Copyright (c) 2010 Andrey Nesterov. See LICENSE for details.
+
