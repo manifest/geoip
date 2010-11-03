@@ -1,23 +1,32 @@
-% Provides information about the geolocation. Based on the ipinfodb.com web service.
+% Returns the location of an IP address. Based on the ipinfodb.com web service.
 % Copyright (c) 2010 Andrey Nesterov
 % See MIT-LICENSE for licensing information.
 
 -module(geoip).
+-behaviour(gen_server).
 -author('ae.nesterov@gmail.com').
 
 -include("geoip.hrl").
 -include_lib("xmerl/include/xmerl.hrl").
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -export([
-	start/0,
+	start/1,
+	stop/0,
 	ip/0,
 	geolocation/0,
 	geolocation/1,
 	geolocation/2
 ]).
 
--spec start() -> ok.
-start() ->
-	ok = inets:start().
+-spec start(string()) -> {ok, pid()}.
+start(Key) ->
+	ok = inets:start(),
+	{ok, _} = gen_server:start_link({local, ?MODULE}, ?MODULE, [Key], []).
+
+-spec stop() -> ok.
+stop() ->
+	ok = gen_server:call(?MODULE, stop),
+	ok = inets:stop().
 
 -spec ip() -> inet:address() | error.
 ip() ->
@@ -34,25 +43,23 @@ geolocation() ->
 
 -spec geolocation(#options {} | inet:ip_address()) -> #response {} | error.
 geolocation(Options) when is_record(Options, options) ->
-	request(request_url(Options));
+	gen_server:call(?MODULE, {lookup, Options});
 geolocation(IP) ->
 	geolocation(IP, #options {}).
 
 -spec geolocation(inet:ip_address(), #options {}) -> #response {} | error.
 geolocation(IP, Options) ->
-	request(lists:concat([
-		request_url(Options),
-		?IP_API_PARAM, inet_parse:ntoa(IP)
-	])).
+	gen_server:call(?MODULE, {lookup, IP, Options}).
 
--spec request_url(#options {}) -> string().
-request_url(#options {precision = P, timezone = T}) ->
+-spec request_url(string(), #options {}) -> string().
+request_url(Key, #options {precision = P, timezone = T}) ->
 	lists:concat([
 		?SERVICE_URL, case P of
 			city -> ?CITY_API;
 			country -> ?COUNTRY_API
 		end,
-		?TIMEZONE_REQUIRED_API_PARAM, T
+		?KEY_REQUIRED_API_PARAM, Key,
+		?TIMEZONE_API_PARAM, T
 	]).
 
 -spec request(string()) -> #response {} | error.	
@@ -109,10 +116,14 @@ extract(#xmlElement{name=Name, content=[C]}, R) ->
 			R#response{latitude = Number(C)};
 		'Longitude' ->
 			R#response{longitude = Number(C)};
+		'Timezone' ->
+			R;
 		'TimezoneName' ->
 			R#response{timezone = String(C)};
 		'Gmtoffset' ->
 			R#response{utc_offset = Integer(C)};
+		'Dstoffset' ->
+			R;
 		'Isdst' ->
 			R#response{dst = String(C) =:= "1"};
 		true ->
@@ -123,4 +134,37 @@ extract(#xmlElement{content=[]}, R) ->
 	R;
 extract(#xmlText{}, R) ->
 	R.
+
+-spec init(list()) -> {ok, any()}.
+init([Key]) ->
+	{ok, #state {key = Key}}.
+
+-spec handle_call(any(), any(), #state {}) -> {reply, any(), #state {}} | {noreply, #state {}}.
+handle_call({lookup, Options}, _From, State) ->
+	Reply = request(request_url(State#state.key, Options)),
+	{reply, Reply, State};
+handle_call({lookup, IP, Options}, _From, State) ->
+	Reply = request(lists:concat([
+		request_url(State#state.key, Options),
+		?IP_API_PARAM, inet_parse:ntoa(IP)
+	])),
+	{reply, Reply, State};
+handle_call(stop, _From, State) ->
+	{stop, normal, ok, State}.
+
+-spec handle_cast(any(), #state {}) -> {noreply, #state {}}.
+handle_cast(_Msg, State) ->
+	{noreply, State}.
+
+-spec handle_info(any(), #state {}) -> {noreply, #state {}}.
+handle_info(_Info, State) ->
+	{noreply, State}.
+
+-spec terminate(any(), #state {}) -> any().
+terminate(_Reason, _State) ->
+	ok.
+
+-spec code_change(any(), any(), any()) -> {ok, any()}.
+code_change(_OldVsn, State, _Extra) ->
+	{ok, State}.
 

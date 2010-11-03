@@ -1,6 +1,10 @@
-## MAC OS
-.DS_Store
+## Erlang
+.beam
+.dump
 
-## VIM
+## Vim
 *.swp
+
+## MacOS
+.DS_Store
 

@@ -1,14 +1,15 @@
 ==== GeoIP ================================================
-Provides information about the geolocation. Based on the ipinfodb.com web service.
+Returns the location of an IP address. Based on the http://ipinfodb.com web service.
+To use the service user must have a API key, you may get it free after registration: http://ipinfodb.com/register.php.
 
 ----- Usage -----------------------------------------------
---- Befor using
+--- Before using
 You must start the daemon before calling any of the functions
 
-1> geoip:start().
-ok
+1> geoip:start("API_key").
+{ok, <0.44.0>}
 
---- Get geolocation
+--- Lookup geolocation
 2> geoip:geolocation().
 #response{
 	ip = {95,30,242,238},
@@ -41,8 +42,7 @@ or
 	...
 }
 
---- Country only
-Returns country only geolocation information
+--- Country precision (faster)
 
 4> geoip:geolocation(#options {precision=country}).                    
 #response{
@@ -64,8 +64,7 @@ or
 	...
 }
 
---- Timezone
-Returns timezone information too
+--- Add timezone data
 
 6> geoip:geolocation(#options {timezone = true}).  
 #response{
@@ -103,14 +102,14 @@ or
 	dst = true
 }
 
---- Get your external ip addres
+--- Lookup your IP address
 8> geoip:ip().
 {2,95,9,156}
 
 ----- Compile & test --------------------------------------
 make
 cd ebin
-./test.escript
+./test.escript API_key
 
 ----- Copyright -------------------------------------------
 Copyright (c) 2010 Andrey Nesterov. See LICENSE for details.

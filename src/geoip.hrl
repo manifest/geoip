@@ -1,12 +1,17 @@
-% Provides information about the geolocation. Based on the ipinfodb.com web service.
+% Returns the location of an IP address. Based on the ipinfodb.com web service.
 % Copyright (c) 2010 Andrey Nesterov
 % See MIT-LICENSE for licensing information.
 
--define(SERVICE_URL, "http://ipinfodb.com/").
+-define(SERVICE_URL, "http://api.ipinfodb.com/v2/").
 -define(CITY_API, "ip_query.php").
 -define(COUNTRY_API, "ip_query_country.php").
--define(TIMEZONE_REQUIRED_API_PARAM, "?timezone=").
+-define(KEY_REQUIRED_API_PARAM, "?key=").
+-define(TIMEZONE_API_PARAM, "&timezone=").
 -define(IP_API_PARAM, "&ip=").
+
+-record(state, {
+	key :: string()
+}).
 
 -record(response, {
 	ip :: inet:ip_address(),
