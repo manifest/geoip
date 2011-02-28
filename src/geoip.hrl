@@ -18,7 +18,7 @@
 	status :: string(),
 	country_code :: string(),
 	country_name :: string(),
-	region_code :: integer,
+	region_code :: string(),
 	region_name :: string(),
 	city :: string(),
 	zip_postal_code :: integer,
