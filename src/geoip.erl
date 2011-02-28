@@ -105,7 +105,7 @@ extract(#xmlElement{name=Name, content=[C]}, R) ->
 		'CountryName' ->
 			R#response{country_name = String(C)};
 		'RegionCode' ->
-			R#response{region_code = Integer(C)};
+			R#response{region_code = String(C)};
 		'RegionName' ->
 			R#response{region_name = String(C)};
 		'City' ->
